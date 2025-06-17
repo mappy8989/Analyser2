@@ -13,6 +13,7 @@ execute_process(
 )
 
 find_package(GTest REQUIRED)
+find_package(range-v3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
 
 include_directories(

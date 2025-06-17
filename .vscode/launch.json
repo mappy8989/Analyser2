@@ -8,14 +8,15 @@
             "type": "lldb",
             "request": "launch",
             "name": "Launch Analyser",
-            "program": "${workspaceFolder}/build/Analyser",
+            "program": "${workspaceFolder}/build/analyser",
             "args": [
                 "-i",
                 "input.txt",
                 "--command",
                 "checksum"
             ],
-            "cwd": "${workspaceFolder}/build"
+            "cwd": "${workspaceFolder}/build",
+            "preLaunchTask": "build"
         }
 
     ]
