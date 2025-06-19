@@ -27,8 +27,25 @@
 #include "metric_impl/metrics.hpp"
 
 int main(int argc, char *argv[]) {
+
+    std::println("!@");
+
     analyser::cmd::ProgramOptions options;
     // распарсите входные параметры
+
+    analyser::file::File f("../files/sample.py");
+    analyser::function::FunctionExtractor f_extr;
+    std::vector func_vec = f_extr.Get(f);
+
+    analyser::metric::metric_impl::CodeLinesCountMetric lines_counter;
+    // for (auto &el : func_vec) {
+    //     std::println("{}", lines_counter.Calculate(el).value);
+    //  }
+
+    analyser::metric::metric_impl::CyclomaticComplexityMetric cyclomatic_counter;
+    for (auto &el : func_vec) {
+        std::println("{}", cyclomatic_counter.Calculate(el).value);
+    }
 
     // analyser::metric::MetricExtractor metric_extractor;
     // зарегистрируйте метрики в metric_extractor
@@ -40,12 +57,12 @@ int main(int argc, char *argv[]) {
     // зарегистрируйте аккумуляторы метрик в accumulator
 
     // запустите analyser::SplitByFiles
-    // запустите analyser::AccumulateFunctionAnalysis для каждого подмножества результатов метрик
-    // выведете результаты на консоль
+    // запустите analyser::AccumulateFunctionAnalysis для каждого подмножества
+    // результатов метрик выведете результаты на консоль
 
     // запустите analyser::SplitByClasses
-    // запустите analyser::AccumulateFunctionAnalysis для каждого подмножества результатов метрик
-    // выведете результаты на консоль
+    // запустите analyser::AccumulateFunctionAnalysis для каждого подмножества
+    // результатов метрик выведете результаты на консоль
 
     // запустите analyser::AccumulateFunctionAnalysis для всех результатов метрик
     // выведете результаты на консоль
