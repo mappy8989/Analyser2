@@ -37,16 +37,16 @@ std::optional<int> extract_number(const std::string &line) {
 }
 
 MetricResult::ValueType CodeLinesCountMetric::CalculateImpl(const function::Function &f) const {
-
     std::set<int> line_set;
 
-    for (auto el : f.ast | std::views::split('\n')) {
-        std::string substr(el.begin(), el.end());
-        auto opt_val = extract_number(substr);
-        if (opt_val.has_value() && !substr.contains("comment")) {
-            line_set.insert(opt_val.value());
-        }
-    }
+    auto filtered_lines = f.ast | std::views::split('\n') |
+                          std::views::transform([](const auto &&el) { return std::string(el.begin(), el.end()); }) |
+                          std::views::filter([](const auto &str) {
+                              return (extract_number(str).has_value() && !str.contains("comment"));
+                          });
+
+    std::ranges::for_each(filtered_lines, [&](const auto &str) { line_set.insert(extract_number(str).value()); });
+
     return line_set.size();
 }
 std::string CodeLinesCountMetric::Name() const { return "CodeLinesCountMetric"; }
