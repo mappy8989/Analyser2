@@ -18,7 +18,17 @@
 #include <vector>
 
 namespace analyser::metric_accumulator::metric_accumulator_impl {
+void SumAverageAccumulator::Accumulate(const metric::MetricResult &metric_result) {
+    count++;
+    sum += metric_result.value;
+    average = average * count / (count + 1) + metric_result.value / (count + 1);
+}
 
+void SumAverageAccumulator::Reset() {
+    count = 0;
+    sum = 0;
+    average = 0.0;
+}
 // здесь ваш код
 
 }  // namespace analyser::metric_accumulator::metric_accumulator_impl

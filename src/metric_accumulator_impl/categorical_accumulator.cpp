@@ -19,6 +19,17 @@
 
 namespace analyser::metric_accumulator::metric_accumulator_impl {
 
-// здесь ваш код
+void CategoricalAccumulator::Accumulate(const metric::MetricResult &metric_result) {
+    auto [metric_element, is_inserted] = categories_freq.insert({metric_result.metric_name, metric_result.value});
+
+    if (is_inserted) {
+        categories_data_counter[metric_result.metric_name] = 1;
+    } else {
+        double n = static_cast<double>(categories_data_counter.at(metric_result.metric_name));
+
+        metric_element->second = metric_element->second * (n / (n + 1)) + (metric_result.value / (n + 1));
+        categories_data_counter[metric_result.metric_name]++;
+    }
+}
 
 }  // namespace analyser::metric_accumulator::metric_accumulator_impl
