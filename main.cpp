@@ -40,19 +40,19 @@ int main(int argc, char *argv[]) {
     analyser::metric::metric_impl::CodeLinesCountMetric lines_counter;
     std::println("CyclomaticCCodeLinesCountMetricomplexityMetric");
     for (auto &el : func_vec) {
-        std::println("{}", lines_counter.Calculate(el).value);
+        //   std::println("{}", lines_counter.Calculate(el).value);
     }
 
     analyser::metric::metric_impl::CyclomaticComplexityMetric cyclomatic_counter;
     std::println("CyclomaticComplexityMetric");
     for (auto &el : func_vec) {
-        std::println("{}", cyclomatic_counter.Calculate(el).value);
+        //  std::println("{}", cyclomatic_counter.Calculate(el).value);
     }
 
     analyser::metric::metric_impl::CountParametersMetric param_counter;
     std::println("CountParametersMetric");
     for (auto &el : func_vec) {
-        std::println("{}", param_counter.Calculate(el).value);
+        //  std::println("{}", param_counter.Calculate(el).value);
     }
 
     analyser::metric::MetricExtractor extractor;
@@ -67,6 +67,19 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> filenames = {"../files/sample.py", "../files/ifs.py",
                                           "../files/ex.py"};
     auto res = analyser::AnalyseFunctions(filenames, extractor);
+    analyser::SplitByFiles(res);
+
+    analyser::metric_accumulator::MetricsAccumulator metric_acc;
+    analyser::metric_accumulator::metric_accumulator_impl::AverageAccumulator av_acc;
+    analyser::metric_accumulator::metric_accumulator_impl::CategoricalAccumulator cat_acc;
+    analyser::metric_accumulator::metric_accumulator_impl::SumAverageAccumulator sum_av_acc;
+
+    auto uniq =
+        std::make_unique<analyser::metric_accumulator::metric_accumulator_impl::AverageAccumulator>(
+            std::move(av_acc));
+    metric_acc.RegisterAccumulator<
+        analyser::metric_accumulator::metric_accumulator_impl::AverageAccumulator>(
+        lines_counter.Name(), std::move(uniq));
 
     // analyser::metric::MetricExtractor metric_extractor;
     // зарегистрируйте метрики в metric_extractor
