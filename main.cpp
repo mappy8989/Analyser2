@@ -38,14 +38,35 @@ int main(int argc, char *argv[]) {
     std::vector func_vec = f_extr.Get(f);
 
     analyser::metric::metric_impl::CodeLinesCountMetric lines_counter;
-    // for (auto &el : func_vec) {
-    //     std::println("{}", lines_counter.Calculate(el).value);
-    //  }
+    std::println("CyclomaticCCodeLinesCountMetricomplexityMetric");
+    for (auto &el : func_vec) {
+        std::println("{}", lines_counter.Calculate(el).value);
+    }
 
     analyser::metric::metric_impl::CyclomaticComplexityMetric cyclomatic_counter;
+    std::println("CyclomaticComplexityMetric");
     for (auto &el : func_vec) {
         std::println("{}", cyclomatic_counter.Calculate(el).value);
     }
+
+    analyser::metric::metric_impl::CountParametersMetric param_counter;
+    std::println("CountParametersMetric");
+    for (auto &el : func_vec) {
+        std::println("{}", param_counter.Calculate(el).value);
+    }
+
+    analyser::metric::MetricExtractor extractor;
+    extractor.RegisterMetric(
+        std::make_unique<analyser::metric::metric_impl::CodeLinesCountMetric>(lines_counter));
+    extractor.RegisterMetric(
+        std::make_unique<analyser::metric::metric_impl::CyclomaticComplexityMetric>(
+            cyclomatic_counter));
+    extractor.RegisterMetric(
+        std::make_unique<analyser::metric::metric_impl::CountParametersMetric>(param_counter));
+
+    std::vector<std::string> filenames = {"../files/sample.py", "../files/ifs.py",
+                                          "../files/ex.py"};
+    auto res = analyser::AnalyseFunctions(filenames, extractor);
 
     // analyser::metric::MetricExtractor metric_extractor;
     // зарегистрируйте метрики в metric_extractor
