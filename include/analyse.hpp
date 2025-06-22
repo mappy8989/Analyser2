@@ -54,8 +54,21 @@ auto AnalyseFunctions(const std::vector<std::string> &files,
     return metrics;
 }
 
-auto SplitByClasses(const auto &analysis) {
-    // здесь ваш код
+auto SplitByClasses(
+    const std::vector<std::pair<analyser::function::Function,
+                                std::vector<analyser::metric::MetricResult>>> &analysis) {
+    auto class_funcs =
+        analysis |
+        std::views::filter([](const auto &elem) { return elem.first.class_name.has_value(); }) |
+        std::ranges::to<std::vector>();
+
+    std::ranges::sort(class_funcs, [](const auto &a, const auto &b) {
+        return a.first.class_name.value() < b.first.class_name.value();
+    });
+
+    return std::views::chunk_by(class_funcs, [](const auto &a, const auto &b) {
+        return a.first.class_name.value() == b.first.class_name.value();
+    });
 }
 
 auto SplitByFiles(const auto &analysis) {
