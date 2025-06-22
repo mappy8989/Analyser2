@@ -71,8 +71,20 @@ auto SplitByClasses(
     });
 }
 
-auto SplitByFiles(const auto &analysis) {
-    // здесь ваш код
+auto SplitByFiles(
+    const std::vector<std::pair<analyser::function::Function,
+                                std::vector<analyser::metric::MetricResult>>> &analysis) {
+    std::vector<
+        std::pair<analyser::function::Function, std::vector<analyser::metric::MetricResult>>>
+        sorted_funcs(analysis.begin(), analysis.end());
+
+    std::ranges::sort(sorted_funcs, [](const auto &a, const auto &b) {
+        return a.first.filename < b.first.filename;
+    });
+
+    return std::views::chunk_by(sorted_funcs, [](const auto &a, const auto &b) {
+        return a.first.filename == b.first.filename;
+    });
 }
 
 void AccumulateFunctionAnalysis(
