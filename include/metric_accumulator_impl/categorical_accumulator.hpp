@@ -23,15 +23,16 @@ namespace analyser::metric_accumulator::metric_accumulator_impl {
 struct CategoricalAccumulator : public IAccumulator {
     void Accumulate(const metric::MetricResult &metric_result) override;
 
-    virtual void Finalize() override;
+    void Finalize() override {};
 
-    virtual void Reset() override;
+    void Reset() override;
 
     const std::unordered_map<std::string, int> &Get() const { return categories_freq; };
 
 private:
     std::unordered_map<std::string, int> categories_freq;
-    std::unordered_map<std::string, int> categories_data_counter;  // for correct average calculation
+    std::unordered_map<std::string, int>
+        categories_data_counter;  // for correct average calculation
 };
 
 }  // namespace analyser::metric_accumulator::metric_accumulator_impl

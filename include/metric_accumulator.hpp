@@ -36,7 +36,9 @@ protected:
 
 struct MetricsAccumulator {
     template <typename Accumulator>
-    void RegisterAccumulator(const std::string &metric_name, std::unique_ptr<Accumulator> acc);
+    void RegisterAccumulator(const std::string &metric_name, std::unique_ptr<Accumulator> acc) {
+        accumulators.insert_or_assign(metric_name, std::move(acc));
+    }
     template <typename Accumulator>
     const Accumulator &GetFinalizedAccumulator(const std::string &metric_name) const {
         std::shared_ptr<IAccumulator> acc;

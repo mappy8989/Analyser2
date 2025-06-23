@@ -31,11 +31,6 @@ void MetricsAccumulator::AccumulateNextFunctionResults(
         }
     });
 }
-template <typename Accumulator>
-void MetricsAccumulator::RegisterAccumulator(const std::string &metric_name,
-                                             std::unique_ptr<Accumulator> acc) {
-    accumulators.insert_or_assign(metric_name, std::move(acc));
-}
 
 void MetricsAccumulator::ResetAccumulators() {
     std::ranges::for_each(accumulators, [&](const auto &elem) { elem.second->Reset(); });
