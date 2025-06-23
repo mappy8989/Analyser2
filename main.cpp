@@ -39,47 +39,48 @@ int main(int argc, char *argv[]) {
 
     analyser::metric::metric_impl::CodeLinesCountMetric lines_counter;
     std::println("CyclomaticCCodeLinesCountMetricomplexityMetric");
-    for (auto &el : func_vec) {
-        //   std::println("{}", lines_counter.Calculate(el).value);
-    }
-
     analyser::metric::metric_impl::CyclomaticComplexityMetric cyclomatic_counter;
-    std::println("CyclomaticComplexityMetric");
-    for (auto &el : func_vec) {
-        //  std::println("{}", cyclomatic_counter.Calculate(el).value);
-    }
-
     analyser::metric::metric_impl::CountParametersMetric param_counter;
-    std::println("CountParametersMetric");
-    for (auto &el : func_vec) {
-        //  std::println("{}", param_counter.Calculate(el).value);
-    }
 
     analyser::metric::MetricExtractor extractor;
+    // extractor.RegisterMetric(std::make_unique<analyser::metric::metric_impl::CodeLinesCountMetric>(lines_counter));
     extractor.RegisterMetric(
-        std::make_unique<analyser::metric::metric_impl::CodeLinesCountMetric>(lines_counter));
-    extractor.RegisterMetric(
-        std::make_unique<analyser::metric::metric_impl::CyclomaticComplexityMetric>(
-            cyclomatic_counter));
-    extractor.RegisterMetric(
-        std::make_unique<analyser::metric::metric_impl::CountParametersMetric>(param_counter));
+        std::make_unique<analyser::metric::metric_impl::CyclomaticComplexityMetric>(cyclomatic_counter));
+    extractor.RegisterMetric(std::make_unique<analyser::metric::metric_impl::CountParametersMetric>(param_counter));
 
-    std::vector<std::string> filenames = {"../files/sample.py", "../files/ifs.py",
-                                          "../files/ex.py"};
-    auto res = analyser::AnalyseFunctions(filenames, extractor);
-    analyser::SplitByFiles(res);
+    std::vector<std::string> filenames = {"../files/sample.py", "../files/ifs.py", "../files/ex.py"};
+    auto analysed_funs = analyser::AnalyseFunctions(filenames, extractor);
+    std::ranges::for_each(analysed_funs, [](const auto &elem) {
+        std::println("{}", elem.first.name);
+        std::ranges::for_each(elem.second,
+                              [](const auto &elem) { std::println("{} {}", elem.metric_name, elem.value); });
+        std::println();
+    });
+    auto splitted = analyser::SplitByFiles(analysed_funs);
 
     analyser::metric_accumulator::MetricsAccumulator metric_acc;
     analyser::metric_accumulator::metric_accumulator_impl::AverageAccumulator av_acc;
     analyser::metric_accumulator::metric_accumulator_impl::CategoricalAccumulator cat_acc;
     analyser::metric_accumulator::metric_accumulator_impl::SumAverageAccumulator sum_av_acc;
 
-    auto uniq =
-        std::make_unique<analyser::metric_accumulator::metric_accumulator_impl::AverageAccumulator>(
-            std::move(av_acc));
-    metric_acc.RegisterAccumulator<
-        analyser::metric_accumulator::metric_accumulator_impl::AverageAccumulator>(
-        lines_counter.Name(), std::move(uniq));
+    metric_acc.RegisterAccumulator(
+        lines_counter.Name(),
+        std::make_unique<analyser::metric_accumulator::metric_accumulator_impl::AverageAccumulator>(std::move(av_acc)));
+    metric_acc.RegisterAccumulator(
+        lines_counter.Name(),
+        std::make_unique<analyser::metric_accumulator::metric_accumulator_impl::CategoricalAccumulator>(
+            std::move(cat_acc)));
+
+    auto res2 = func_vec | std::views::transform([&](auto &&elem) { return lines_counter.Calculate(elem); }) |
+                std::ranges::to<std::vector>();
+
+    metric_acc.AccumulateNextFunctionResults(res2);
+    auto res3 =
+        metric_acc
+            .GetFinalizedAccumulator<analyser::metric_accumulator::metric_accumulator_impl::CategoricalAccumulator>(
+                lines_counter.Name());
+
+    analyser::AccumulateFunctionAnalysis(splitted, metric_acc);
 
     // analyser::metric::MetricExtractor metric_extractor;
     // зарегистрируйте метрики в metric_extractor

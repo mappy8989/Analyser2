@@ -41,26 +41,20 @@ auto AnalyseFunctions(const std::vector<std::string> &files,
 
     std::ranges::for_each(files_obj, [&](const auto &elem) {
         auto obj_funcs = analyser::function::FunctionExtractor().Get(elem);
-        funcs.insert(funcs.end(), std::make_move_iterator(obj_funcs.begin()),
-                     std::make_move_iterator(obj_funcs.end()));
+        funcs.insert(funcs.end(), std::make_move_iterator(obj_funcs.begin()), std::make_move_iterator(obj_funcs.end()));
     });
-    std::vector<
-        std::pair<analyser::function::Function, std::vector<analyser::metric::MetricResult>>>
-        metrics;
-    std::ranges::for_each(funcs, [&](const auto &elem) {
-        metrics.emplace_back(std::make_pair(elem, metric_extractor.Get(elem)));
-    });
+    std::vector<std::pair<analyser::function::Function, std::vector<analyser::metric::MetricResult>>> metrics;
+    std::ranges::for_each(
+        funcs, [&](const auto &elem) { metrics.emplace_back(std::make_pair(elem, metric_extractor.Get(elem))); });
 
     return metrics;
 }
 
 auto SplitByClasses(
-    const std::vector<std::pair<analyser::function::Function,
-                                std::vector<analyser::metric::MetricResult>>> &analysis) {
-    auto class_funcs =
-        analysis |
-        std::views::filter([](const auto &elem) { return elem.first.class_name.has_value(); }) |
-        std::ranges::to<std::vector>();
+    const std::vector<std::pair<analyser::function::Function, std::vector<analyser::metric::MetricResult>>> &analysis) {
+    auto class_funcs = analysis |
+                       std::views::filter([](const auto &elem) { return elem.first.class_name.has_value(); }) |
+                       std::ranges::to<std::vector>();
 
     std::ranges::sort(class_funcs, [](const auto &a, const auto &b) {
         return a.first.class_name.value() < b.first.class_name.value();
@@ -72,24 +66,23 @@ auto SplitByClasses(
 }
 
 auto SplitByFiles(
-    const std::vector<std::pair<analyser::function::Function,
-                                std::vector<analyser::metric::MetricResult>>> &analysis) {
-    std::vector<
-        std::pair<analyser::function::Function, std::vector<analyser::metric::MetricResult>>>
-        sorted_funcs(analysis.begin(), analysis.end());
+    const std::vector<std::pair<analyser::function::Function, std::vector<analyser::metric::MetricResult>>> &analysis) {
+    std::vector<std::pair<analyser::function::Function, std::vector<analyser::metric::MetricResult>>> sorted_funcs(
+        analysis.begin(), analysis.end());
 
-    std::ranges::sort(sorted_funcs, [](const auto &a, const auto &b) {
-        return a.first.filename < b.first.filename;
-    });
+    std::ranges::sort(sorted_funcs, [](const auto &a, const auto &b) { return a.first.filename < b.first.filename; });
 
-    return std::views::chunk_by(sorted_funcs, [](const auto &a, const auto &b) {
-        return a.first.filename == b.first.filename;
-    });
+    return std::views::chunk_by(sorted_funcs,
+                                [](const auto &a, const auto &b) { return a.first.filename == b.first.filename; }) |
+           std::views::transform([](auto &&chunk) { return std::vector(chunk.begin(), chunk.end()); }) |
+           std::ranges::to<std::vector>();
 }
 
-void AccumulateFunctionAnalysis(
-    const auto &analysis, const analyser::metric_accumulator::MetricsAccumulator &accumulator) {
-    // здесь ваш код
+void AccumulateFunctionAnalysis(const auto &analysis,
+                                const analyser::metric_accumulator::MetricsAccumulator &accumulator) {
+    std::ranges::for_each(analysis, [&](const auto &chunk) {
+        std::ranges::for_each(chunk, [&](const auto &elem) { accumulator.AccumulateNextFunctionResults(elem.second); });
+    });
 }
 
 }  // namespace analyser
