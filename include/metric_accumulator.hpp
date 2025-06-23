@@ -48,10 +48,9 @@ struct MetricsAccumulator {
             throw std::runtime_error("No aggregated accumulator for " + metric_name);
         }
 
-        return acc;
+        return *(dynamic_cast<Accumulator *>(acc.get()));
     }
-    void
-    AccumulateNextFunctionResults(const std::vector<metric::MetricResult> &metric_results) const;
+    void AccumulateNextFunctionResults(const std::vector<metric::MetricResult> &metric_results) const;
 
     void ResetAccumulators();
 
