@@ -40,7 +40,8 @@ MetricResult::ValueType CountParametersMetric::CalculateImpl(const function::Fun
         } else if (str.contains("parameters") && line_num == func_definition_line && !parameters_spaces_count) {
             parameters_spaces_count = spaces_count + 2;  // we have 2 more spaces after parameters definition
         } else if ((str.contains("identifier") || str.contains("typed_parameter") ||
-                    str.contains("typed_default_parameter ")) &&
+                    str.contains("typed_default_parameter ") || str.contains("default_parameter ") ||
+                    str.contains("list_splat_pattern ") || str.contains("dictionary_splat_pattern ")) &&
                    line_num == func_definition_line && spaces_count == parameters_spaces_count) {
             func_param_counter++;
         }

@@ -24,7 +24,7 @@ MetricResult::ValueType CyclomaticComplexityMetric::CalculateImpl(const function
         std::string st(elem.begin(), elem.end());
         return (st.contains("if_statement") || st.contains("elif_clause") || st.contains("while_statement") ||
                 st.contains("for_statement") || st.contains("try_statement") || st.contains("except_clause") ||
-                st.contains("case_clause") || st.contains("assert_statement"));
+                st.contains("case_clause"));
     });
 
     counter++;  // initially base complexity of a function is 1
