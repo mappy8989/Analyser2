@@ -20,10 +20,10 @@
 namespace analyser::metric_accumulator::metric_accumulator_impl {
 
 void AverageAccumulator::Accumulate(const metric::MetricResult &metric_result) {
-    count++;
     double dbl_cnt = static_cast<double>(count);
     sum += metric_result.value;
     average = average * dbl_cnt / (dbl_cnt + 1) + (metric_result.value) / (dbl_cnt + 1);
+    count++;
 }
 
 void AverageAccumulator::Reset() {

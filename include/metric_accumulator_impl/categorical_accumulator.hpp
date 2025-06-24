@@ -27,12 +27,11 @@ struct CategoricalAccumulator : public IAccumulator {
 
     void Reset() override;
 
-    const std::unordered_map<std::string, int> &Get() const { return categories_freq; };
+    const std::unordered_map<std::string, double> &Get() const { return categories_freq; };
 
 private:
-    std::unordered_map<std::string, int> categories_freq;
-    std::unordered_map<std::string, int>
-        categories_data_counter;  // for correct average calculation
+    std::unordered_map<std::string, double> categories_freq;
+    std::unordered_map<std::string, int> categories_data_counter;  // for correct average calculation
 };
 
 }  // namespace analyser::metric_accumulator::metric_accumulator_impl

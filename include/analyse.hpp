@@ -60,9 +60,11 @@ auto SplitByClasses(
         return a.first.class_name.value() < b.first.class_name.value();
     });
 
-    return std::views::chunk_by(class_funcs, [](const auto &a, const auto &b) {
-        return a.first.class_name.value() == b.first.class_name.value();
-    });
+    return std::views::chunk_by(
+               class_funcs,
+               [](const auto &a, const auto &b) { return a.first.class_name.value() == b.first.class_name.value(); }) |
+           std::views::transform([](auto &&chunk) { return std::vector(chunk.begin(), chunk.end()); }) |
+           std::ranges::to<std::vector>();
 }
 
 auto SplitByFiles(
@@ -80,9 +82,7 @@ auto SplitByFiles(
 
 void AccumulateFunctionAnalysis(const auto &analysis,
                                 const analyser::metric_accumulator::MetricsAccumulator &accumulator) {
-    std::ranges::for_each(analysis, [&](const auto &chunk) {
-        std::ranges::for_each(chunk, [&](const auto &elem) { accumulator.AccumulateNextFunctionResults(elem.second); });
-    });
+    std::ranges::for_each(analysis, [&](const auto &elem) { accumulator.AccumulateNextFunctionResults(elem.second); });
 }
 
 }  // namespace analyser

@@ -40,10 +40,6 @@ struct MetricsAccumulator {
     void RegisterAccumulator(const std::string &metric_name, std::unique_ptr<Accumulator> acc) {
         std::shared_ptr<IAccumulator> shared_acc = std::move(acc);
         accumulators.insert_or_assign(metric_name, std::move(shared_acc));
-
-        for (auto elem : accumulators) {
-            std::println("{}", elem.first);
-        }
     }
     template <typename Accumulator>
     const Accumulator &GetFinalizedAccumulator(const std::string &metric_name) const {
@@ -61,8 +57,7 @@ struct MetricsAccumulator {
         return *specific_acc;
     }
 
-    void
-    AccumulateNextFunctionResults(const std::vector<metric::MetricResult> &metric_results) const;
+    void AccumulateNextFunctionResults(const std::vector<metric::MetricResult> &metric_results) const;
 
     void ResetAccumulators();
 

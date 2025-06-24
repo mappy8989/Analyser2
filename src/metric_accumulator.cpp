@@ -20,8 +20,7 @@
 
 namespace analyser::metric_accumulator {
 
-void MetricsAccumulator::AccumulateNextFunctionResults(
-    const std::vector<metric::MetricResult> &metric_results) const {
+void MetricsAccumulator::AccumulateNextFunctionResults(const std::vector<metric::MetricResult> &metric_results) const {
 
     std::ranges::for_each(metric_results, [&](const auto &elem) {
         try {
