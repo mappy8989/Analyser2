@@ -11,6 +11,7 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <print>
 #include <ranges>
 #include <sstream>
 #include <string>
@@ -37,20 +38,31 @@ protected:
 struct MetricsAccumulator {
     template <typename Accumulator>
     void RegisterAccumulator(const std::string &metric_name, std::unique_ptr<Accumulator> acc) {
-        accumulators.insert_or_assign(metric_name, std::move(acc));
+        std::shared_ptr<IAccumulator> shared_acc = std::move(acc);
+        accumulators.insert_or_assign(metric_name, std::move(shared_acc));
+
+        for (auto elem : accumulators) {
+            std::println("{}", elem.first);
+        }
     }
     template <typename Accumulator>
     const Accumulator &GetFinalizedAccumulator(const std::string &metric_name) const {
-        std::shared_ptr<IAccumulator> acc;
-        try {
-            acc = accumulators.at(metric_name);
-        } catch (...) {
+        auto it = accumulators.find(metric_name);
+        if (it == accumulators.end()) {
             throw std::runtime_error("No aggregated accumulator for " + metric_name);
         }
 
-        return *(dynamic_cast<Accumulator *>(acc.get()));
+        auto acc = it->second;
+        Accumulator *specific_acc = dynamic_cast<Accumulator *>(acc.get());
+        if (!specific_acc) {
+            throw std::runtime_error("Accumulator type mismatch for metric: " + metric_name);
+        }
+
+        return *specific_acc;
     }
-    void AccumulateNextFunctionResults(const std::vector<metric::MetricResult> &metric_results) const;
+
+    void
+    AccumulateNextFunctionResults(const std::vector<metric::MetricResult> &metric_results) const;
 
     void ResetAccumulators();
 
