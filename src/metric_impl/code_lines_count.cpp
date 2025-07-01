@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -21,18 +22,20 @@
 
 namespace analyser::metric::metric_impl {
 
-std::optional<int> extract_number(const std::string &line) {
+std::optional<int> ExtractCodeLineNumber(const std::string_view line) {
     auto pos1 = line.find('[');
     if (pos1 == std::string::npos)
         return std::nullopt;
     auto pos2 = line.find(',', pos1);
     if (pos2 == std::string::npos)
         return std::nullopt;
-    std::string number_str = line.substr(pos1 + 1, pos2 - pos1 - 1);
-    try {
-        return std::stoi(number_str);
-    } catch (...) {
-        return std::nullopt;
+
+    int result{};
+    auto [ptr, ec] = std::from_chars(line.data() + pos1 + 1, line.data() + pos2 - pos1 - 1, result);
+    if (ec == std::errc()) {
+        return result;
+    } else {
+        throw std::runtime_error("Incorrect number");
     }
 }
 
@@ -42,10 +45,11 @@ MetricResult::ValueType CodeLinesCountMetric::CalculateImpl(const function::Func
     auto filtered_lines = f.ast | std::views::split('\n') |
                           std::views::transform([](const auto &&el) { return std::string(el.begin(), el.end()); }) |
                           std::views::filter([](const auto &str) {
-                              return (extract_number(str).has_value() && !str.contains("comment"));
+                              return (ExtractCodeLineNumber(str).has_value() && !str.contains("comment"));
                           });
 
-    std::ranges::for_each(filtered_lines, [&](const auto &str) { line_set.insert(extract_number(str).value()); });
+    std::ranges::for_each(filtered_lines,
+                          [&](const auto &str) { line_set.insert(ExtractCodeLineNumber(str).value()); });
 
     return line_set.size();
 }

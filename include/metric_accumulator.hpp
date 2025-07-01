@@ -38,8 +38,7 @@ protected:
 struct MetricsAccumulator {
     template <typename Accumulator>
     void RegisterAccumulator(const std::string &metric_name, std::unique_ptr<Accumulator> acc) {
-        std::shared_ptr<IAccumulator> shared_acc = std::move(acc);
-        accumulators.insert_or_assign(metric_name, std::move(shared_acc));
+        accumulators.try_emplace(metric_name, std::move(acc));
     }
     template <typename Accumulator>
     const Accumulator &GetFinalizedAccumulator(const std::string &metric_name) const {
@@ -53,6 +52,7 @@ struct MetricsAccumulator {
         if (!specific_acc) {
             throw std::runtime_error("Accumulator type mismatch for metric: " + metric_name);
         }
+        specific_acc->Finalize();
 
         return *specific_acc;
     }

@@ -5,7 +5,7 @@
 namespace analyser::metric::metric_impl {
 
 TEST(cyclomatic_complexity_test, if_check) {
-    analyser::file::File f("/workspaces/Analyser2/src/metric_impl/tests/files/if.py");
+    analyser::file::File f("../../../src/metric_impl/tests/files/if.py");
     analyser::function::FunctionExtractor f_extr;
     std::vector func_vec = f_extr.Get(f);
 
@@ -15,7 +15,7 @@ TEST(cyclomatic_complexity_test, if_check) {
 }
 
 TEST(cyclomatic_complexity, match_check) {
-    analyser::file::File f("/workspaces/Analyser2/src/metric_impl/tests/files/match_case.py");
+    analyser::file::File f("../../../src/metric_impl/tests/files/match_case.py");
     analyser::function::FunctionExtractor f_extr;
     std::vector func_vec = f_extr.Get(f);
 
@@ -25,7 +25,7 @@ TEST(cyclomatic_complexity, match_check) {
 }
 
 TEST(cyclomatic_complexity, nested_if_check) {
-    analyser::file::File f("/workspaces/Analyser2/src/metric_impl/tests/files/nested_if.py");
+    analyser::file::File f("../../../src/metric_impl/tests/files/nested_if.py");
     analyser::function::FunctionExtractor f_extr;
     std::vector func_vec = f_extr.Get(f);
 

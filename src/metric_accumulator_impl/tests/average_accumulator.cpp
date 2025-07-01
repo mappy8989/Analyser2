@@ -11,6 +11,7 @@ TEST(average_acc_test, simple_test) {
     av_acc.Accumulate({"test_metric", 10});
     av_acc.Accumulate({"test_metric", 20});
     av_acc.Accumulate({"test_metric", 30});
+    av_acc.Finalize();
 
     ASSERT_NEAR(av_acc.Get(), 20., 0.001);
 }

@@ -28,11 +28,11 @@ struct SumAverageAccumulator : public IAccumulator {
     };
     void Accumulate(const metric::MetricResult &metric_result) override;
 
-    virtual void Finalize() override {};
+    virtual void Finalize() override;
 
     virtual void Reset() override;
 
-    SumAverage Get() const { return {sum, average}; };
+    SumAverage Get() const;
 
 private:
     int sum = 0;

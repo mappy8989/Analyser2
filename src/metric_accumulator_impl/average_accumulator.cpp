@@ -20,16 +20,29 @@
 namespace analyser::metric_accumulator::metric_accumulator_impl {
 
 void AverageAccumulator::Accumulate(const metric::MetricResult &metric_result) {
-    double dbl_cnt = static_cast<double>(count);
     sum += metric_result.value;
-    average = average * dbl_cnt / (dbl_cnt + 1) + (metric_result.value) / (dbl_cnt + 1);
     count++;
+
+    is_finalized = false;
 }
+
+void AverageAccumulator::Finalize() {
+    average = static_cast<double>(sum) / count;
+    is_finalized = true;
+};
+
+double AverageAccumulator::Get() const {
+    if (!is_finalized) {
+        throw std::runtime_error("Result is not finalized!");
+    }
+    return average;
+};
 
 void AverageAccumulator::Reset() {
     count = 0;
     sum = 0;
     average = 0.0;
+    is_finalized = false;
 }
 
 }  // namespace analyser::metric_accumulator::metric_accumulator_impl

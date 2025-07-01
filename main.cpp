@@ -31,12 +31,17 @@ namespace MAI = analyser::metric_accumulator::metric_accumulator_impl;
 
 int main(int argc, char *argv[]) {
     analyser::cmd::ProgramOptions options;
-    if (options.Parse(argc, argv) == false) {
-        // just exit without error
-        return 0;
+
+    try {
+        if (options.Parse(argc, argv) == false) {
+            // just exit without error
+            return 0;
+        }
+    } catch (...) {
+        throw std::runtime_error("Parsing error");
     }
 
-    const std::vector<std::string> filenames = options.GetFiles();
+    const std::vector<std::string> filenames(std::move(options.GetFiles()));
 
     MI::CodeLinesCountMetric lines_counter;
     MI::CyclomaticComplexityMetric cyclomatic_counter;
@@ -50,63 +55,47 @@ int main(int argc, char *argv[]) {
     auto analysed_funcs = analyser::AnalyseFunctions(filenames, extractor);
     std::ranges::for_each(analysed_funcs, [](const auto &func) {
         if (func.first.class_name.has_value()) {
-            std::println("{}[::{}]::{}", func.first.filename, func.first.class_name.value(),
-                         func.first.name);
+            std::println("{}[::{}]::{}", func.first.filename, func.first.class_name.value(), func.first.name);
         } else {
             std::println("{}::{}", func.first.filename, func.first.name);
         };
 
-        std::ranges::for_each(func.second, [](const auto &metric) {
-            std::println("{}: {}", metric.metric_name, metric.value);
-        });
+        std::ranges::for_each(func.second,
+                              [](const auto &metric) { std::println("{}: {}", metric.metric_name, metric.value); });
         std::println();
     });
 
     analyser::metric_accumulator::MetricsAccumulator metric_acc;
 
-    metric_acc.RegisterAccumulator(lines_counter.Name(),
-                                   std::make_unique<MAI::AverageAccumulator>());
-    metric_acc.RegisterAccumulator(param_counter.Name(),
-                                   std::make_unique<MAI::CategoricalAccumulator>());
-    metric_acc.RegisterAccumulator(cyclomatic_counter.Name(),
-                                   std::make_unique<MAI::SumAverageAccumulator>());
+    metric_acc.RegisterAccumulator(lines_counter.Name(), std::make_unique<MAI::AverageAccumulator>());
+    metric_acc.RegisterAccumulator(param_counter.Name(), std::make_unique<MAI::CategoricalAccumulator>());
+    metric_acc.RegisterAccumulator(cyclomatic_counter.Name(), std::make_unique<MAI::SumAverageAccumulator>());
+
+    auto print_acc_results = [&](auto &&chunk) {
+        analyser::AccumulateFunctionAnalysis(chunk, metric_acc);
+        auto acc_res = metric_acc.GetFinalizedAccumulator<MAI::AverageAccumulator>(lines_counter.Name());
+        std::println("{}: {}", lines_counter.Name(), acc_res.Get());
+        auto sum_acc_res = metric_acc.GetFinalizedAccumulator<MAI::SumAverageAccumulator>(cyclomatic_counter.Name());
+        std::println("{}: {}", cyclomatic_counter.Name(), sum_acc_res.Get().average);
+        auto cat_acc_res = metric_acc.GetFinalizedAccumulator<MAI::CategoricalAccumulator>(param_counter.Name());
+        std::ranges::for_each(cat_acc_res.Get(), [&](const auto &elem) {
+            std::println("{}: {} {}", param_counter.Name(), elem.first, elem.second);
+        });
+        std::println();
+    };
 
     auto splitted_by_files = analyser::SplitByFiles(analysed_funcs);
     std::println();
     std::ranges::for_each(splitted_by_files, [&](auto &chunk) {
         std::println("Accumulated Analysis for file {}:", chunk.front().first.filename);
-        analyser::AccumulateFunctionAnalysis(chunk, metric_acc);
-        auto acc_res =
-            metric_acc.GetFinalizedAccumulator<MAI::AverageAccumulator>(lines_counter.Name());
-        std::println("{}: {}", lines_counter.Name(), acc_res.Get());
-        auto sum_acc_res = metric_acc.GetFinalizedAccumulator<MAI::SumAverageAccumulator>(
-            cyclomatic_counter.Name());
-        std::println("{}: {}", lines_counter.Name(), sum_acc_res.Get().average);
-        auto cat_acc_res =
-            metric_acc.GetFinalizedAccumulator<MAI::CategoricalAccumulator>(param_counter.Name());
-        std::ranges::for_each(cat_acc_res.Get(), [&](const auto &elem) {
-            std::println("{}: {} {}", lines_counter.Name(), elem.first, elem.second);
-        });
-        std::println();
+        print_acc_results(chunk);
     });
 
     auto splitted_by_classes = analyser::SplitByClasses(analysed_funcs);
     std::println();
     std::ranges::for_each(splitted_by_classes, [&](auto &chunk) {
         std::println("Accumulated Analysis for class {}:", chunk.front().first.class_name.value());
-        analyser::AccumulateFunctionAnalysis(chunk, metric_acc);
-        auto acc_res =
-            metric_acc.GetFinalizedAccumulator<MAI::AverageAccumulator>(lines_counter.Name());
-        std::println("{}: {}", lines_counter.Name(), acc_res.Get());
-        auto sum_acc_res = metric_acc.GetFinalizedAccumulator<MAI::SumAverageAccumulator>(
-            cyclomatic_counter.Name());
-        std::println("{}: {}", lines_counter.Name(), sum_acc_res.Get().average);
-        auto cat_acc_res =
-            metric_acc.GetFinalizedAccumulator<MAI::CategoricalAccumulator>(param_counter.Name());
-        std::ranges::for_each(cat_acc_res.Get(), [&](const auto &elem) {
-            std::println("{}: {} {}", lines_counter.Name(), elem.first, elem.second);
-        });
-        std::println();
+        print_acc_results(chunk);
     });
 
     return 0;

@@ -20,18 +20,18 @@
 namespace analyser::metric::metric_impl {
 
 MetricResult::ValueType CountParametersMetric::CalculateImpl(const function::Function &f) const {
-    extern std::optional<int> extract_number(const std::string &line);
+    extern std::optional<int> ExtractCodeLineNumber(const std::string_view line);
 
     int func_param_counter = 0;
 
     auto filtered_lines = f.ast | std::views::split('\n') |
                           std::views::transform([](const auto &&el) { return std::string(el.begin(), el.end()); }) |
-                          std::views::filter([](const auto &str) { return extract_number(str).has_value(); });
+                          std::views::filter([](const auto &str) { return ExtractCodeLineNumber(str).has_value(); });
 
     std::ranges::for_each(filtered_lines, [&](const auto &str) {
         static int func_definition_line = -1;
         static int parameters_spaces_count = 0;  // spaces count for function parameters line
-        int line_num = extract_number(str).value();
+        int line_num = ExtractCodeLineNumber(str).value();
 
         int spaces_count = std::distance(str.begin(), std::ranges::find_if(str, [](char c) { return c != ' '; }));
         if (str.contains("function_definition")) {
