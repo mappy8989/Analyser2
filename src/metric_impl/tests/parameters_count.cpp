@@ -5,7 +5,7 @@
 namespace analyser::metric::metric_impl {
 
 TEST(parameters_count_test, if_check) {
-    analyser::file::File f("/workspaces/Analyser2/src/metric_impl/tests/files/comments.py");
+    analyser::file::File f("../../../src/metric_impl/tests/files/comments.py");
     analyser::function::FunctionExtractor f_extr;
     std::vector func_vec = f_extr.Get(f);
 
@@ -15,7 +15,7 @@ TEST(parameters_count_test, if_check) {
 }
 
 TEST(parameters_count_test, zero_params_check) {
-    analyser::file::File f("/workspaces/Analyser2/src/metric_impl/tests/files/exceptions.py");
+    analyser::file::File f("../../../src/metric_impl/tests/files/exceptions.py");
     analyser::function::FunctionExtractor f_extr;
     std::vector func_vec = f_extr.Get(f);
 
