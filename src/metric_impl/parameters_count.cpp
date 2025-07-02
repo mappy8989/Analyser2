@@ -24,24 +24,30 @@ MetricResult::ValueType CountParametersMetric::CalculateImpl(const function::Fun
 
     int func_param_counter = 0;
 
-    auto filtered_lines = f.ast | std::views::split('\n') |
-                          std::views::transform([](const auto &&el) { return std::string(el.begin(), el.end()); }) |
-                          std::views::filter([](const auto &str) { return ExtractCodeLineNumber(str).has_value(); });
+    auto filtered_lines =
+        f.ast | std::views::split('\n') | std::views::transform([](const auto &&el) {
+            return std::string_view(el.begin(), el.end());
+        }) |
+        std::views::filter([](const auto &str) { return ExtractCodeLineNumber(str).has_value(); });
 
     std::ranges::for_each(filtered_lines, [&](const auto &str) {
         static int func_definition_line = -1;
         static int parameters_spaces_count = 0;  // spaces count for function parameters line
         int line_num = ExtractCodeLineNumber(str).value();
 
-        int spaces_count = std::distance(str.begin(), std::ranges::find_if(str, [](char c) { return c != ' '; }));
+        int spaces_count =
+            std::distance(str.begin(), std::ranges::find_if(str, [](char c) { return c != ' '; }));
         if (str.contains("function_definition")) {
             func_definition_line = line_num;
             parameters_spaces_count = 0;
-        } else if (str.contains("parameters") && line_num == func_definition_line && !parameters_spaces_count) {
-            parameters_spaces_count = spaces_count + 2;  // we have 2 more spaces after parameters definition
+        } else if (str.contains("parameters") && line_num == func_definition_line &&
+                   !parameters_spaces_count) {
+            parameters_spaces_count =
+                spaces_count + 2;  // we have 2 more spaces after parameters definition
         } else if ((str.contains("identifier") || str.contains("typed_parameter") ||
-                    str.contains("typed_default_parameter ") || str.contains("default_parameter ") ||
-                    str.contains("list_splat_pattern ") || str.contains("dictionary_splat_pattern ")) &&
+                    str.contains("typed_default_parameter ") ||
+                    str.contains("default_parameter ") || str.contains("list_splat_pattern ") ||
+                    str.contains("dictionary_splat_pattern ")) &&
                    line_num == func_definition_line && spaces_count == parameters_spaces_count) {
             func_param_counter++;
         }
