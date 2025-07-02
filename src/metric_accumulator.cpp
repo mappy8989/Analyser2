@@ -20,12 +20,20 @@
 
 namespace analyser::metric_accumulator {
 
-void MetricsAccumulator::AccumulateNextFunctionResults(const std::vector<metric::MetricResult> &metric_results) const {
-    // здесь ваш код
+void MetricsAccumulator::AccumulateNextFunctionResults(
+    const std::vector<metric::MetricResult> &metric_results) const {
+
+    std::ranges::for_each(metric_results, [&](const auto &elem) {
+        if (auto it = accumulators.find(elem.metric_name); it != accumulators.end()) [[likely]]
+            it->second->Accumulate(elem);
+        else {
+            throw std::runtime_error("No aggregated accumulator found for " + elem.metric_name);
+        }
+    });
 }
 
 void MetricsAccumulator::ResetAccumulators() {
-    // здесь ваш код
+    std::ranges::for_each(accumulators, [&](const auto &elem) { elem.second->Reset(); });
 }
 
 }  // namespace analyser::metric_accumulator
