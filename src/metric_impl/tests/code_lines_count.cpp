@@ -7,8 +7,6 @@ namespace analyser::metric::metric_impl {
 TEST(code_lines_count_test, comments_check) {
 
     analyser::file::File f("../../../src/metric_impl/tests/files/comments.py");
-
-    // analyser::file::File f("/workspaces/Analyser2/src/metric_impl/tests/files/comments.py");
     analyser::function::FunctionExtractor f_extr;
     std::vector func_vec = f_extr.Get(f);
 

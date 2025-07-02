@@ -20,11 +20,12 @@
 
 namespace analyser::metric_accumulator {
 
-void MetricsAccumulator::AccumulateNextFunctionResults(const std::vector<metric::MetricResult> &metric_results) const {
+void MetricsAccumulator::AccumulateNextFunctionResults(
+    const std::vector<metric::MetricResult> &metric_results) const {
 
     std::ranges::for_each(metric_results, [&](const auto &elem) {
-        if (accumulators.contains(elem.metric_name)) [[likely]]
-            accumulators.at(elem.metric_name)->Accumulate(elem);
+        if (auto it = accumulators.find(elem.metric_name); it != accumulators.end()) [[likely]]
+            it->second->Accumulate(elem);
         else {
             throw std::runtime_error("No aggregated accumulator found for " + elem.metric_name);
         }
